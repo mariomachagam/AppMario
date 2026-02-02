@@ -1,5 +1,11 @@
 package com.mario.appmario.screens
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -10,7 +16,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavHostController
 import com.mario.appmario.NavRoutes
 import com.mario.appmario.viewmodel.ContactsViewModel
@@ -20,7 +28,21 @@ fun Call(
     navController: NavHostController,
     viewModel: ContactsViewModel
 ) {
+    val context = LocalContext.current
     var phoneNumber by remember { mutableStateOf("") }
+
+    // Launcher para pedir permiso CALL_PHONE
+    val callPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted && phoneNumber.isNotEmpty()) {
+            val intent = Intent(
+                Intent.ACTION_CALL,
+                Uri.parse("tel:$phoneNumber")
+            )
+            context.startActivity(intent)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -29,7 +51,7 @@ fun Call(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        Spacer(modifier = Modifier.weight(1f)) // espacio superior
+        Spacer(modifier = Modifier.weight(1f))
 
         // Número marcado
         Text(
@@ -81,9 +103,25 @@ fun Call(
                 Icon(Icons.Filled.Backspace, contentDescription = "Borrar")
             }
 
-            // Llamar
+            // 📞 Llamar DIRECTAMENTE
             FloatingActionButton(
-                onClick = { /* llamada real */ },
+                onClick = {
+                    if (phoneNumber.isEmpty()) return@FloatingActionButton
+
+                    if (ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.CALL_PHONE
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        val intent = Intent(
+                            Intent.ACTION_CALL,
+                            Uri.parse("tel:$phoneNumber")
+                        )
+                        context.startActivity(intent)
+                    } else {
+                        callPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+                    }
+                },
                 containerColor = Color(0xFF4CAF50)
             ) {
                 Icon(
@@ -106,7 +144,7 @@ fun Call(
             }
         }
 
-        Spacer(modifier = Modifier.weight(1f)) // espacio inferior
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
