@@ -1,24 +1,30 @@
 package com.mario.appmario.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.mario.appmario.model.Contact
 import com.mario.appmario.model.defaultContacts
 
 class ContactsViewModel : ViewModel() {
 
-    // Lista de contactos que se muestra en la app
-    val contacts = mutableStateListOf<Contact>().apply {
-        addAll(defaultContacts) // Añadimos los contactos por defecto
+    var contacts: SnapshotStateList<Contact> = mutableStateListOf()
+        private set
+
+    init {
+        contacts.addAll(defaultContacts)
     }
 
-    // Función para añadir un contacto nuevo
     fun addContact(contact: Contact) {
         contacts.add(contact)
     }
 
-    // Función opcional para eliminar un contacto
     fun removeContact(contact: Contact) {
         contacts.remove(contact)
+    }
+
+    fun updateContact(oldContact: Contact, newContact: Contact) {
+        val index = contacts.indexOf(oldContact)
+        if (index != -1) contacts[index] = newContact
     }
 }
