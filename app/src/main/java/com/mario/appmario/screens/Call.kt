@@ -79,7 +79,7 @@ fun Call(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -156,7 +156,7 @@ fun DialButton(
     Button(
         onClick = onClick,
         shape = CircleShape,
-        modifier = Modifier.size(80.dp)
+        modifier = Modifier.size(100.dp)
     ) {
         Text(
             text = symbol,
@@ -164,3 +164,4 @@ fun DialButton(
         )
     }
 }
+

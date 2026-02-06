@@ -4,27 +4,23 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.compose.composable
 import androidx.navigation.NavType
+import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mario.appmario.screens.*
 import com.mario.appmario.ui.theme.AppMarioTheme
 import com.mario.appmario.viewmodel.ContactsViewModel
-import com.mario.appmario.model.Contact
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,9 +28,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppMarioTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainScreen(modifier = Modifier.padding(innerPadding))
-                }
+                MainScreen()
             }
         }
     }
@@ -42,7 +36,7 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun GreetingPreview() {
+fun PreviewMainScreen() {
     AppMarioTheme {
         MainScreen()
     }
@@ -50,7 +44,7 @@ fun GreetingPreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(modifier: Modifier = Modifier) {
+fun MainScreen() {
     val navController = rememberNavController()
     val contactsViewModel: ContactsViewModel = viewModel()
 
@@ -58,30 +52,46 @@ fun MainScreen(modifier: Modifier = Modifier) {
         topBar = {
             TopAppBar(
                 title = {
-                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(" Aplicación de teléfono \n ")
-                        Text("\nMario Machado Gámez", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("EasyPhone")
+                        Text(
+                            text = "By mariomachagam",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             )
         },
-        content = { padding ->
-            Column(Modifier.padding(padding)) {
-                NavigationHost(navController = navController, viewModel = contactsViewModel)
-            }
-        },
-        bottomBar = { BottomNavigationBar(navController = navController) }
-    )
+        bottomBar = { BottomNavigationBar(navController) }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(padding)
+        ) {
+            NavigationHost(navController, contactsViewModel)
+        }
+    }
 }
 
 @Composable
 fun NavigationHost(navController: NavHostController, viewModel: ContactsViewModel) {
-    NavHost(navController = navController, startDestination = NavRoutes.Contacts.route) {
+    NavHost(
+        navController = navController,
+        startDestination = NavRoutes.Contacts.route
+    ) {
+
+        // Pantalla principal de contactos
         composable(NavRoutes.Contacts.route) {
             Contacts(viewModel = viewModel, navController = navController)
         }
 
-        // Ruta con parámetro para detalle
+        // Detalle de contacto
         composable(
             route = "contactDetail/{phone}",
             arguments = listOf(navArgument("phone") { type = NavType.StringType })
@@ -89,29 +99,38 @@ fun NavigationHost(navController: NavHostController, viewModel: ContactsViewMode
             val phone = backStackEntry.arguments?.getString("phone")
             val contact = viewModel.contacts.find { it.phone == phone }
             contact?.let {
-                ContactDetail(
-                    contact = it,
-                    viewModel = viewModel,
-                    navController = navController
-                )
+                ContactDetail(contact = it, viewModel = viewModel, navController = navController)
             }
         }
 
-
-        composable(NavRoutes.Call.route) {
-            Call(navController = navController, viewModel = viewModel)
-        }
-
+        // Pantalla añadir contacto
         composable(
             route = NavRoutes.Add.route + "?phone={phone}",
             arguments = listOf(navArgument("phone") { type = NavType.StringType; defaultValue = "" })
         ) { backStackEntry ->
             val phoneArg = backStackEntry.arguments?.getString("phone") ?: ""
-            Add(viewModel = viewModel, initialPhone = phoneArg, onContactSaved = { navController.popBackStack() })
+            Add(viewModel = viewModel, initialPhone = phoneArg) {
+                navController.popBackStack()
+            }
         }
 
-        composable(NavRoutes.Mail.route) {
-            Mail()
+        // Pantalla favoritos
+        composable(NavRoutes.Favoritos.route) {
+            Favoritos(viewModel = viewModel, navController = navController)
+        }
+
+        // Pantalla de mensajes con parámetro de contacto
+        composable(
+            route = "mail/{contactName}",
+            arguments = listOf(navArgument("contactName") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val contactName = backStackEntry.arguments?.getString("contactName") ?: ""
+            Mensajes(navController = navController, contactName = contactName)
+        }
+
+        // Pantalla llamadas
+        composable(NavRoutes.Call.route) {
+            Call(navController = navController, viewModel = viewModel)
         }
     }
 }
@@ -121,6 +140,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     NavigationBar {
         val backStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = backStackEntry?.destination?.route
+
         NavBarItems.BarItems.forEach { navItem ->
             NavigationBarItem(
                 selected = currentRoute == navItem.route,

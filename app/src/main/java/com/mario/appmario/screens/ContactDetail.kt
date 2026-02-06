@@ -8,10 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.mario.appmario.model.Contact
 import com.mario.appmario.viewmodel.ContactsViewModel
@@ -20,14 +19,13 @@ import com.mario.appmario.viewmodel.ContactsViewModel
 fun ContactDetail(
     contact: Contact,
     viewModel: ContactsViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    onMessageClick: (contactName: String) -> Unit = {}
 ) {
-    // ——————————————————————————
-    // Estados editables: inicializados con los datos actuales del contacto
+    // Estados editables
     var birthday by remember { mutableStateOf(contact.birthday) }
     var address by remember { mutableStateOf(contact.address) }
     var notes by remember { mutableStateOf(contact.notes) }
-    // ——————————————————————————
 
     Column(
         modifier = Modifier
@@ -37,18 +35,13 @@ fun ContactDetail(
     ) {
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Aquí continúa tu UI: título, foto, nombre, campos editables, botón guardar…
-        Text(
-            text = "Información de contacto",
-            style = MaterialTheme.typography.headlineMedium
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
+        // Foto del contacto
         Image(
             painter = painterResource(id = contact.photoResId),
             contentDescription = contact.name,
-            modifier = Modifier.size(120.dp).clip(CircleShape)
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape)
         )
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -59,6 +52,7 @@ fun ContactDetail(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Campos editables
         OutlinedTextField(
             value = birthday,
             onValueChange = { birthday = it },
@@ -87,6 +81,7 @@ fun ContactDetail(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Botón “Guardar”
         Button(
             onClick = {
                 val updatedContact = contact.copy(
@@ -104,7 +99,40 @@ fun ContactDetail(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Botón “Volver”
+        OutlinedButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Volver")
+        }
 
+        Spacer(modifier = Modifier.height(24.dp))
 
+        // 🔹 NUEVOS BOTONES DE LLAMAR Y MENSAJE (debajo de Volver)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Botón Llamar (verde)
+            Button(
+                onClick = {
+                    // Aquí puedes agregar la lógica de llamada si quieres
+                },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)), // verde
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Llamar", color = Color.White)
+            }
+
+            // Botón Mensaje (azul)
+            Button(
+                onClick = { onMessageClick(contact.name) },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3)), // azul
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Mensaje", color = Color.White)
+            }
+        }
     }
 }

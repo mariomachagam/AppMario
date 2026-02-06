@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.FavoriteBorder
 
 object NavBarItems {
     val BarItems = listOf(
@@ -24,11 +25,13 @@ object NavBarItems {
             route = "add"
         ),
         BarItem(
-            title = "Mail",
-            image = Icons.Filled.Email,
-            route = "mail"
-        )
+            title = "Favotitos",
+            image = Icons.Filled.FavoriteBorder,
+            route = "favoritos"
+        ),
 
     )
+
 }
+
 

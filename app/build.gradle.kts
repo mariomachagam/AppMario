@@ -61,5 +61,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended:<versión>")
+    implementation("com.google.accompanist:accompanist-flowlayout:0.31.5-beta")
+    implementation("androidx.navigation:navigation-compose:2.7.3")
+// última versión
 
 }

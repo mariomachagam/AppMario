@@ -1,6 +1,7 @@
 package com.mario.appmario.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -8,8 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mario.appmario.R
 import com.mario.appmario.model.Contact
@@ -27,12 +28,12 @@ fun Add(
     var selectedPhoto by remember { mutableStateOf<Int?>(null) }
     var expanded by remember { mutableStateOf(false) }
 
-    val photos = listOf(
-        R.drawable.img,
-        R.drawable.img,
-        R.drawable.img,
-        R.drawable.img
-    )
+    val context = LocalContext.current
+
+    // Todas las imágenes de drawable llamadas img1, img2, img3 ...
+    val photos = (1..50).map { i ->
+        context.resources.getIdentifier("img$i", "drawable", context.packageName)
+    }.filter { it != 0 } // elimina los que no existan
 
     Column(
         modifier = Modifier
@@ -43,11 +44,11 @@ fun Add(
         Text(
             text = "Añadir contacto",
             style = MaterialTheme.typography.headlineLarge,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
         )
 
-        // 🔝 Imagen seleccionada arriba y centrada
+        // Imagen seleccionada arriba
         selectedPhoto?.let { photo ->
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -96,19 +97,32 @@ fun Add(
                 onClick = { expanded = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = selectedPhoto?.let { "Cambiar imagen" }
-                        ?: "Seleccionar imagen"
-                )
+                selectedPhoto?.let {
+                    Image(
+                        painter = painterResource(id = it),
+                        contentDescription = "Imagen seleccionada",
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                    )
+                } ?: Text("Seleccionar imagen")
             }
 
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                photos.forEachIndexed { index, photo ->
+                photos.forEach { photo ->
                     DropdownMenuItem(
-                        text = { Text("Foto ${index + 1}") },
+                        text = {
+                            Image(
+                                painter = painterResource(id = photo),
+                                contentDescription = "Foto",
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .clip(CircleShape)
+                            )
+                        },
                         onClick = {
                             selectedPhoto = photo
                             expanded = false
@@ -128,7 +142,7 @@ fun Add(
                             name = name,
                             phone = phone,
                             mail = mail,
-                            photoResId = selectedPhoto ?: R.drawable.img
+                            photoResId = selectedPhoto ?: R.drawable.img1
                         )
                     )
                     onContactSaved()
